@@ -4,8 +4,8 @@ import java.util.List;
 
 public class ComputationNode {
 
-    private ComputationNodeType nodeType;
-    private List<ComputationNode> children = null;
+    private ComputationNodeType nodeType; // the operation we are performing
+    private List<ComputationNode> children = null; // the matrixes we are operating on
     private double[][] matrix = null; // only used for MATRIX nodes
 
     public ComputationNode(String operatorStr, List<ComputationNode> children) throws IllegalArgumentException {
@@ -82,7 +82,8 @@ public class ComputationNode {
     }
 
     /**
-     * Resolves this node by setting its type to MATRIX and storing the computed matrix.
+     * Resolves this node by setting its type to MATRIX and storing the computed
+     * matrix.
      */
     public void resolve(double[][] matrix) {
         this.nodeType = ComputationNodeType.MATRIX;
@@ -96,6 +97,5 @@ public class ComputationNode {
         }
         return matrix;
     }
-
 
 }
