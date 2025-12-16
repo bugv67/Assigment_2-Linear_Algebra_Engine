@@ -7,8 +7,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class TiredExecutor {
 
-    private final TiredThread[] workers;
-    private final PriorityBlockingQueue<TiredThread> idleMinHeap = new PriorityBlockingQueue<>();
+    private final TiredThread[] workers; // all working and not working
+    private final PriorityBlockingQueue<TiredThread> idleMinHeap = new PriorityBlockingQueue<>(); // not working
     private final AtomicInteger inFlight = new AtomicInteger(0);
 
     public TiredExecutor(int numThreads) {

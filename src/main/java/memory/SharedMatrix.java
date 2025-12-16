@@ -6,6 +6,7 @@ public class SharedMatrix {
 
     public SharedMatrix() {
         // TODO: initialize empty matrix
+        this.vectors = new SharedVector[0]; // doesnt natter becuse we wont get here ?
     }
 
     public SharedMatrix(double[][] matrix) {
