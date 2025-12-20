@@ -46,7 +46,7 @@ public class SharedMatrix {
     }
 
     private void releaseAllVectorReadLocks(SharedVector[] vecs) {
-        // TODO: release read locks
+        // TODO: release read locks GHHHHH
     }
 
     private void acquireAllVectorWriteLocks(SharedVector[] vecs) {
