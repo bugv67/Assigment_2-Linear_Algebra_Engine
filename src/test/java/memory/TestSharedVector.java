@@ -12,9 +12,68 @@ class TestSharedVector {
     }
 
     @Test
-    void testMul() {
-        assertTrue(true);
+    void testGet() {
+        SharedVector vector = new SharedVector(new double[] { 10.5, 20.5, 30.5 }, VectorOrientation.ROW_MAJOR);
+        assertEquals(10.5, vector.get(0), 1e-9);
+        assertEquals(20.5, vector.get(1), 1e-9);
+        assertEquals(30.5, vector.get(2), 1e-9);
+    }
 
+    @Test
+    void testGetLength() {
+        SharedVector vector = new SharedVector(new double[] { 1, 2, 3, 4, 5 }, VectorOrientation.ROW_MAJOR);
+        assertEquals(5, vector.length());
+    }
+
+    @Test
+    void testGetOrientation() {
+        SharedVector vector = new SharedVector(new double[] { 1, 2, 3 }, VectorOrientation.COLUMN_MAJOR);
+        assertEquals(VectorOrientation.COLUMN_MAJOR, vector.getOrientation());
+    }
+
+    @Test
+    void testTranspose() {
+        SharedVector vector = new SharedVector(new double[] { 1, 2, 3 }, VectorOrientation.ROW_MAJOR);
+        vector.transpose();
+        assertEquals(VectorOrientation.COLUMN_MAJOR, vector.getOrientation());
+
+        vector.transpose();
+        assertEquals(VectorOrientation.ROW_MAJOR, vector.getOrientation());
+    }
+
+    @Test
+    void testAdd() {
+        SharedVector vector1 = new SharedVector(new double[] { 1, 2, 3 }, VectorOrientation.ROW_MAJOR);
+        SharedVector vector2 = new SharedVector(new double[] { 4, 5, 6 }, VectorOrientation.ROW_MAJOR);
+
+        vector1.add(vector2);
+
+        assertEquals(5.0, vector1.get(0), 1e-9);
+        assertEquals(7.0, vector1.get(1), 1e-9);
+        assertEquals(9.0, vector1.get(2), 1e-9);
+
+    }
+
+    @Test
+    void testNegate() {
+        SharedVector vector = new SharedVector(new double[] { 1, -2, 3 }, VectorOrientation.ROW_MAJOR);
+        vector.negate();
+        assertEquals(-1.0, vector.get(0), 1e-9);
+        assertEquals(2.0, vector.get(1), 1e-9);
+        assertEquals(-3.0, vector.get(2), 1e-9);
+    }
+
+    @Test
+    void testDot() {
+        SharedVector vector1 = new SharedVector(new double[] { 1, 2, 3 }, VectorOrientation.ROW_MAJOR);
+        SharedVector vector2 = new SharedVector(new double[] { 4, 5, 6 }, VectorOrientation.COLUMN_MAJOR);
+        double result = vector1.dot(vector2);
+        assertEquals(32.0, result, 1e-9); // 1*4 + 2*5 + 3*6 = 32
+    }
+
+    @Test
+    void testMul() {
+        // assertTrue(true);
         // Row vector: [1, 2]
         SharedVector vector = new SharedVector(new double[] { 1, 2 }, VectorOrientation.ROW_MAJOR);
 

@@ -55,7 +55,43 @@ public class SharedMatrix {
 
     public double[][] readRowMajor() {
         // TODO: return matrix contents as a row-major double[][]
-        return null;
+        SharedVector[] snapshot = this.vectors;
+        acquireAllVectorReadLocks(snapshot);
+        try {
+
+            if (snapshot == null || snapshot.length == 0) {
+                throw new IllegalStateException("Matrix is empty");
+            }
+            VectorOrientation ori = snapshot[0].getOrientation();
+            int col, row;
+            double[][] result;
+
+            if (ori == VectorOrientation.ROW_MAJOR) {
+                result = new double[snapshot.length][snapshot[0].length()];
+                row = snapshot.length;
+                col = snapshot[0].length();
+            } else {
+                result = new double[snapshot[0].length()][snapshot.length];
+                row = snapshot[0].length();
+                col = snapshot.length;
+            }
+
+            for (int i = 0; i < row; i++) { // each vector - does it matter row or column?
+                for (int j = 0; j < col; j++) { // index in each vector
+                    if (ori == VectorOrientation.ROW_MAJOR)
+                        result[i][j] = snapshot[i].get(j);
+                    else
+                        result[i][j] = snapshot[j].get(i);
+
+                }
+            }
+            return result;
+        } finally
+
+        {
+            releaseAllVectorReadLocks(snapshot);
+        }
+
     }
 
     public SharedVector get(int index) {
