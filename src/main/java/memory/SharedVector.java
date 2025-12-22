@@ -169,40 +169,41 @@ public class SharedVector {
 
     }
 
-    public void vecMatMul(SharedMatrix matrix) {
+    public void vecMatMul(SharedMatrix matrix) // throws IllegalArgumentException
+    {
 
-        double[][] matrix1 = matrix.readRowMajor(); // shora
+        double[][] temp = matrix.readRowMajor(); // shora
         // TODO: compute row-vector × matrix
+
         // Validationn- what to return?
         if (matrix == null)
             return; // ??
+        // throw new IllegalArgumentException("Matrix is null");
         if (this.orientation != VectorOrientation.ROW_MAJOR)
             return; // ??
+        // throw new IllegalArgumentException("Vector isnt a row major");
 
-        double[] product = new double[matrix1[0].length];
-        this.readLock();
-        // matrix.acquireAllVectorReadLocks();
+        double[] product = new double[temp[0].length];
+        this.writeLock(); // we are about to change the vector
 
         try {
+            if (this.length() != temp.length)
+                return; // ??
+            // throw new IllegalArgumentException("Dimensions missed matched ");
             // Matrix is organized as an array of rows
-            for (int col = 0; col < matrix1[0].length; col++) {
+            for (int col = 0; col < temp[0].length; col++) {
                 double sum = 0;
                 for (int row = 0; row < this.length(); row++) {
                     // Vector[row] * Matrix[row][col]
-                    sum += this.get(row) * matrix1[row][col];
+                    sum += this.get(row) * temp[row][col];
                 }
                 product[col] = sum;
             }
-        } finally {
 
-            this.readUnlock();
-        }
-
-        writeLock();
-        try {
             this.vector = product;
         } finally {
-            writeUnlock();
+
+            this.writeUnlock();
         }
     }
 
