@@ -23,65 +23,74 @@ public class SharedMatrix {
 
     public void loadRowMajor(double[][] matrix) {
         // TODO: replace internal data with new row-major matrix
-        acquireAllVectorWriteLocks(vectors); // so that other wont work on un updated data
-        SharedVector[] newMarix = new SharedVector[matrix.length];
-        SharedVector[] oldMarix = this.vectors;
+       
+        SharedVector[] newMatrix = new SharedVector[matrix.length];
+        SharedVector[] oldMatrix = this.vectors;
+        acquireAllVectorWriteLocks(oldMatrix); // so that other wont work on un updated data
         try {
 
             for (int i = 0; i < matrix.length; i++) {
-                newMarix[i] = new SharedVector(matrix[i], VectorOrientation.ROW_MAJOR);
+                newMatrix[i] = new SharedVector(matrix[i], VectorOrientation.ROW_MAJOR);
             }
-            this.vectors = newMarix;
+            this.vectors = newMatrix;
         } finally {
-            releaseAllVectorWriteLocks(oldMarix);
+            releaseAllVectorWriteLocks(oldMatrix);
         }
     }
 
     public void loadColumnMajor(double[][] matrix) {
         // TODO: replace internal data with new column-major matrix
-        acquireAllVectorWriteLocks(vectors); // so that other wont work on un updated data
-        // do we need to flip the data? becuse each row is a vector
-        SharedVector[] newMarix = new SharedVector[matrix.length];
-        SharedVector[] oldMarix = this.vectors;
+
+        SharedVector[] newMatrix = new SharedVector[matrix[0].length];
+        SharedVector[] oldMatrix = this.vectors;
+        acquireAllVectorWriteLocks(oldMatrix); // so that other wont work on un updated data
         try {
-            for (int i = 0; i < matrix.length; i++) {
-                newMarix[i] = new SharedVector(matrix[i], VectorOrientation.COLUMN_MAJOR);
+            for (int col = 0; col < matrix[0].length; col++) {
+                double[] colArr = new double[matrix.length];
+                for(int row = 0; row < matrix.length; row ++) {
+                    colArr[row] = matrix[row][col];
+      
+                }
+                newMatrix[col] = new SharedVector(colArr, VectorOrientation.COLUMN_MAJOR);
             }
-            this.vectors = newMarix;
+            this.vectors = newMatrix;
         } finally {
-            releaseAllVectorWriteLocks(oldMarix);
+            releaseAllVectorWriteLocks(oldMatrix);
         }
     }
 
     public double[][] readRowMajor() {
         // TODO: return matrix contents as a row-major double[][]
-        SharedVector[] snapshot = this.vectors;
-        acquireAllVectorReadLocks(snapshot);
+        SharedVector[] oldMatrix = this.vectors;
+        acquireAllVectorReadLocks(oldMatrix);
         try {
 
-            if (snapshot == null || snapshot.length == 0) {
+            if (oldMatrix == null || oldMatrix.length == 0) {
                 throw new IllegalStateException("Matrix is empty");
             }
-            VectorOrientation ori = snapshot[0].getOrientation();
+            VectorOrientation ori = oldMatrix[0].getOrientation();
             int col, row;
             double[][] result;
 
+            // intialize result
             if (ori == VectorOrientation.ROW_MAJOR) {
-                result = new double[snapshot.length][snapshot[0].length()];
-                row = snapshot.length;
-                col = snapshot[0].length();
+                result = new double[oldMatrix.length][oldMatrix[0].length()];
+                row = oldMatrix.length;
+                col = oldMatrix[0].length();
             } else {
-                result = new double[snapshot[0].length()][snapshot.length];
-                row = snapshot[0].length();
-                col = snapshot.length;
+                result = new double[oldMatrix[0].length()][oldMatrix.length];
+                row = oldMatrix[0].length();
+                col = oldMatrix.length;
             }
+
+            //fill the row 
 
             for (int i = 0; i < row; i++) { // each vector - does it matter row or column?
                 for (int j = 0; j < col; j++) { // index in each vector
                     if (ori == VectorOrientation.ROW_MAJOR)
-                        result[i][j] = snapshot[i].get(j);
+                        result[i][j] = oldMatrix[i].get(j);
                     else
-                        result[i][j] = snapshot[j].get(i);
+                        result[i][j] = oldMatrix[j].get(i);
 
                 }
             }
@@ -89,7 +98,7 @@ public class SharedMatrix {
         } finally
 
         {
-            releaseAllVectorReadLocks(snapshot);
+            releaseAllVectorReadLocks(oldMatrix);
         }
 
     }

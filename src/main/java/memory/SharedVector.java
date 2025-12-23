@@ -93,17 +93,6 @@ public class SharedVector {
         // TODO: add two vectors
         // make sure operation is legal
 
-        ////////////// to prevent dead lock if v1.add(v2) and v2.add(v1)
-
-        // SharedVector first = this;
-        // SharedVector second = other;
-
-        // if (System.identityHashCode(first) > System.identityHashCode(second)) {
-        // first = other;
-        // second = this;
-        // }
-        // first.writeLock();
-        // second.readLock();
 
         writeLock();
         other.readLock();
@@ -142,7 +131,6 @@ public class SharedVector {
         // TODO: compute dot product (row · column)
         // validation- what to return?
 
-        ///////// dead lock????
         if (other == null)
             return 0; // ??
 
@@ -177,24 +165,20 @@ public class SharedVector {
 
         // Validationn- what to return?
         if (matrix == null)
-            return; // ??
-        // throw new IllegalArgumentException("Matrix is null");
+            throw new IllegalArgumentException("Matrix is null");
         if (this.orientation != VectorOrientation.ROW_MAJOR)
-            return; // ??
-        // throw new IllegalArgumentException("Vector isnt a row major");
+            throw new IllegalArgumentException("Vector isnt a row major");
 
         double[] product = new double[temp[0].length];
         this.writeLock(); // we are about to change the vector
 
         try {
             if (this.length() != temp.length)
-                return; // ??
-            // throw new IllegalArgumentException("Dimensions missed matched ");
+                throw new IllegalArgumentException("Dimensions missed matched ");
             // Matrix is organized as an array of rows
             for (int col = 0; col < temp[0].length; col++) {
                 double sum = 0;
                 for (int row = 0; row < this.length(); row++) {
-                    // Vector[row] * Matrix[row][col]
                     sum += this.get(row) * temp[row][col];
                 }
                 product[col] = sum;
@@ -202,7 +186,6 @@ public class SharedVector {
 
             this.vector = product;
         } finally {
-
             this.writeUnlock();
         }
     }
