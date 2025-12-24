@@ -59,6 +59,13 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {
      */
     public void newTask(Runnable task) {
         // TODO
+        if (!alive.get()) {
+            throw new IllegalStateException("Cannot assign a task to a dead thread");
+        }
+        boolean success =  this.handoff.offer(task);
+        if (!success) {
+            throw new IllegalStateException("This thread is not ready to accept a task");
+        }
     }
 
     /**
@@ -67,20 +74,54 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {
      */
     public void shutdown() {
         // TODO
+        long currTime = System.nanoTime();
+        this.timeIdle.addAndGet(currTime - idleStartTime.get());
+        this.alive.set(false);
+        this.POISON_PILL.run();
     }
 
     @Override
     public void run() {
         // TODO
+       
         if (this.handoff.isEmpty()) {
             throw new IllegalStateException("Has no task to preform");
         }
-        this.handoff.peek().run();
+        // CAN POISON PILL BE HERE??
+        long currTime = System.nanoTime();
+        this.timeIdle.addAndGet(currTime - idleStartTime.get());
+        this.busy.set(true);
+        try {
+            Runnable task = this.handoff.poll();
+            if(task.equals(POISON_PILL)) {
+                return;
+            }
+            task.run();
+        } catch (Exception e) { 
+           // TODOOOOOO  
+        } finally {
+            this.busy.set(false);
+            long finishTime = System.nanoTime();
+            this.timeUsed.addAndGet(finishTime - currTime);
+            this.idleStartTime.set(finishTime);
+        }
     }
 
     @Override
     public int compareTo(TiredThread o) {
         // TODO
+        if (o == null) {
+            throw new IllegalArgumentException("thread cannot be null");
+        }
+        // necessary??????
+        if (!o.alive.get() || !this.alive.get()) {
+            throw new IllegalArgumentException("threads cannot be dead");
+        }
+        if(this.getFatigue() > o.getFatigue()) {
+            return 1;
+        } else if (this.getFatigue() < o.getFatigue()) {
+            return -1;
+        }
         return 0;
     }
 }
