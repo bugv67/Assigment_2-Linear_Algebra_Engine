@@ -60,11 +60,14 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {
     public void newTask(Runnable task) {
         // TODO
         if (!alive.get()) {
-            throw new IllegalStateException("Cannot assign a task to a dead thread");
+            throw new IllegalStateException("Cannot assign a task to a dead thread: " + id);
+        }
+        if (isBusy()) {
+            throw new IllegalStateException("This thread is busy: " + id);
         }
         boolean success =  this.handoff.offer(task);
         if (!success) {
-            throw new IllegalStateException("This thread is not ready to accept a task");
+            throw new IllegalStateException("This thread is not ready to accept a task: " + id);
         }
     }
 
@@ -83,39 +86,37 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {
     @Override
     public void run() {
         // TODO
-       
-        if (this.handoff.isEmpty()) {
-            throw new IllegalStateException("Has no task to preform");
-        }
-        // CAN POISON PILL BE HERE??
-        long currTime = System.nanoTime();
-        this.timeIdle.addAndGet(currTime - idleStartTime.get());
-        this.busy.set(true);
-        try {
-            Runnable task = this.handoff.poll();
-            if(task.equals(POISON_PILL)) {
+        while (true) {
+            long currTime = System.nanoTime();
+            try {
+                Runnable task = this.handoff.take();
+                if(task.equals(POISON_PILL)) {
                 return;
             }
+            this.timeIdle.addAndGet(currTime - idleStartTime.get());
+            this.busy.set(true);
             task.run();
-        } catch (Exception e) { 
+            } catch (Exception e) { 
            // TODOOOOOO  
-        } finally {
-            this.busy.set(false);
-            long finishTime = System.nanoTime();
-            this.timeUsed.addAndGet(finishTime - currTime);
-            this.idleStartTime.set(finishTime);
+            } finally {
+                this.busy.set(false);
+                long finishTime = System.nanoTime();
+                this.timeUsed.addAndGet(finishTime - currTime);
+                this.idleStartTime.set(finishTime);
+            }
         }
+       
     }
 
     @Override
     public int compareTo(TiredThread o) {
         // TODO
         if (o == null) {
-            throw new IllegalArgumentException("thread cannot be null");
+            throw new IllegalArgumentException("thread cannot be null " + o.id);
         }
         // necessary??????
         if (!o.alive.get() || !this.alive.get()) {
-            throw new IllegalArgumentException("threads cannot be dead");
+            throw new IllegalArgumentException("threads cannot be dead " + id);
         }
         if(this.getFatigue() > o.getFatigue()) {
             return 1;

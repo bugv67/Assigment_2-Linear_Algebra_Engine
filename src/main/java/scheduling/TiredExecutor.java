@@ -13,15 +13,44 @@ public class TiredExecutor {
 
     public TiredExecutor(int numThreads) {
         // TODO
-        workers = null; // placeholder
+        workers = new TiredThread[numThreads];
+        for (int i = 0; i < numThreads; i++) {
+            double fatigueFactor = Math.random() + 0.5;
+            TiredThread thread = new TiredThread(i,fatigueFactor);
+            workers[i] = thread;
+            idleMinHeap.add(thread);
+            thread.start();
+        }
     }
-
     public void submit(Runnable task) {
-        // TODO
+        try {
+            TiredThread worker = idleMinHeap.take(); //////// waits until worker free ?? 
+           inFlight.incrementAndGet();
+
+            Runnable taskWrapper = () -> {  // wraappint in order to follow the thread so that well be able to re insert her
+            try {
+                task.run();          // run the og task
+            } finally {
+                idleMinHeap.add(worker);  // return the worker to the heap becausr he is freeeeeee
+                inFlight.decrementAndGet(); 
+            }
+        };
+
+        worker.newTask(taskWrapper);
+
+    } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
     }
+}
+
 
     public void submitAll(Iterable<Runnable> tasks) {
         // TODO: submit tasks one by one and wait until all finish
+        for(Runnable task : tasks) {
+            submit(task);
+        }
+        
+
     }
 
     public void shutdown() throws InterruptedException {
