@@ -93,7 +93,6 @@ public class SharedVector {
         // TODO: add two vectors
         // make sure operation is legal
 
-
         writeLock();
         other.readLock();
         try {
@@ -170,7 +169,7 @@ public class SharedVector {
             throw new IllegalArgumentException("Vector isnt a row major");
 
         double[] product = new double[temp[0].length];
-        this.writeLock(); // we are about to change the vector
+        this.readLock();
 
         try {
             if (this.length() != temp.length)
@@ -183,7 +182,11 @@ public class SharedVector {
                 }
                 product[col] = sum;
             }
-
+        } finally {
+            this.readUnlock();
+        }
+        this.writeLock();
+        try {
             this.vector = product;
         } finally {
             this.writeUnlock();
