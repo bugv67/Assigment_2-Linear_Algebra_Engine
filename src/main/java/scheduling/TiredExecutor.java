@@ -17,39 +17,41 @@ public class TiredExecutor {
         workers = new TiredThread[numThreads];
         for (int i = 0; i < numThreads; i++) {
             double fatigueFactor = Math.random() + 0.5;
-            TiredThread thread = new TiredThread(i,fatigueFactor);
+            TiredThread thread = new TiredThread(i, fatigueFactor);
             workers[i] = thread;
             idleMinHeap.add(thread);
             thread.start();
         }
     }
+
     public void submit(Runnable task) {
         try {
-            TiredThread worker = idleMinHeap.take(); //////// waits until worker free ?? 
+            TiredThread worker = idleMinHeap.take(); //////// waits until worker free ??
             synchronized (completionLock) {
                 inFlight.incrementAndGet();
             }
 
-            Runnable taskWrapper = () -> {  // wraappint in order to follow the thread so that well be able to re insert her
-            try {
-                task.run();          // run the og task
-            } finally {
-                idleMinHeap.add(worker);  // return the worker to the heap becausr he is freeeeeee
-                synchronized (completionLock) {
-                    if (inFlight.decrementAndGet() == 0) {
-                        completionLock.notifyAll(); //  alert finished
+            Runnable taskWrapper = () -> { // wraappint in order to follow the thread so that well be able to re insert
+                                           // her
+                try {
+                    task.run(); // run the og task
+                } finally {
+                    idleMinHeap.add(worker); // return the worker to the heap becausr he is freeeeeee
+                    synchronized (completionLock) { // if thread fails he relese this lock
+                        if (inFlight.decrementAndGet() == 0) {
+                            completionLock.notifyAll(); // alert finished
+                        }
                     }
-                } 
-            }
-        };
+                }
+            };
 
-        worker.newTask(taskWrapper);
+            worker.newTask(taskWrapper);
 
-    } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
+        } catch (InterruptedException e) {
+            // return;
+            Thread.currentThread().interrupt(); // ignore? will wake up in the sumbit of other thread
+        }
     }
-}
-
 
     public void submitAll(Iterable<Runnable> tasks) {
         for (Runnable task : tasks) {
@@ -59,25 +61,40 @@ public class TiredExecutor {
         synchronized (completionLock) {
             while (inFlight.get() > 0) {
                 try {
-                    completionLock.wait(); 
-                } catch (InterruptedException e) {
+                    completionLock.wait();
+                } catch (InterruptedException e) { // ignore? will wake up in the sumbit of other thread
+                    // return;
                     Thread.currentThread().interrupt();
                     break;
                 }
             }
         }
     }
+
     public void shutdown() throws InterruptedException {
-        if(inFlight.get() > 0 ) {
-            throw new IllegalAccessError("Tried to shut down while there are still tasks to be completed");    
+        if (inFlight.get() > 0) {
+            throw new IllegalAccessError("Tried to shut down while there are still tasks to be completed");
         }
-        for(TiredThread worker : workers) {
-                worker.shutdown();
+
+        // Note: The 'inFlight' counter tracks only runnig tasks, not idle or waiting
+        // Workers that are blocked on handoff.take() are not counted in 'inFlight'.
+        // During shutdown, we wait until inFlight == 0, ensuring all submitted tasks
+        // are completed,
+        // then send a POISON_PILL to each worker to wake up any blocked threads and
+        // close them safely.
+
+        // synchronized (completionLock) {
+        // while (inFlight.get() > 0) {
+        // completionLock.wait();
+        // }
+        // }
+        for (TiredThread worker : workers) {
+            worker.shutdown();
         }
         for (TiredThread worker : workers) {
-        worker.join(); //waiting for the threads to shut down
+            worker.join(); // waiting for the threads to shut down
         }
-        // TODO
+
     }
 
     public synchronized String getWorkerReport() {
@@ -88,20 +105,20 @@ public class TiredExecutor {
         for (int i = 0; i < workers.length; i++) {
             faTigueAvg = faTigueAvg + workers[i].getFatigue();
             report.append("Worker ")
-                .append(workers[i].getWorkerId())
-                .append(":\n");
+                    .append(workers[i].getWorkerId())
+                    .append(":\n");
 
             report.append("  Fatigue   : ")
-                .append(workers[i].getFatigue())
-                .append("\n");
+                    .append(workers[i].getFatigue())
+                    .append("\n");
 
             report.append("  Time Used : ")
-                .append(workers[i].getTimeUsed())
-                .append("\n");
+                    .append(workers[i].getTimeUsed())
+                    .append("\n");
 
             report.append("  Time Idle : ")
-                .append(workers[i].getTimeIdle())
-                .append("\n");
+                    .append(workers[i].getTimeIdle())
+                    .append("\n");
 
             report.append("\n");
         }
@@ -109,11 +126,11 @@ public class TiredExecutor {
         double fairness = 0.0;
         for (int i = 0; i < workers.length; i++) {
             double deviation = workers[i].getFatigue() - faTigueAvg;
-            fairness = fairness + Math.pow(deviation,2);
+            fairness = fairness + Math.pow(deviation, 2);
         }
-       report.append(String.format("Fairness: ", fairness));
+        report.append(String.format("Fairness: ", fairness));
 
         return report.toString();
-}
+    }
 
 }

@@ -18,6 +18,8 @@ public class LinearAlgebraEngine {
 
     public LinearAlgebraEngine(int numThreads) {
         // TODO: create executor with given thread count
+        this.executor = new TiredExecutor(numThreads);
+
     }
 
     public ComputationNode run(ComputationNode computationRoot) {
