@@ -59,6 +59,16 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {
      */
     public void newTask(Runnable task) {
         // TODO
+        if (!alive.get()) {
+            throw new IllegalStateException("Cannot assign a task to a dead thread: " + id);
+        }
+        if (isBusy()) {
+            throw new IllegalStateException("This thread is busy: " + id);
+        }
+        boolean success =  this.handoff.offer(task);
+        if (!success) {
+            throw new IllegalStateException("This thread is not ready to accept a task: " + id);
+        }
     }
 
     /**
@@ -67,20 +77,55 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {
      */
     public void shutdown() {
         // TODO
+        handoff.offer(POISON_PILL);
+         this.alive.set(false);
     }
 
-    @Override
-    public void run() {
-        // TODO
-        if (this.handoff.isEmpty()) {
-            throw new IllegalStateException("Has no task to preform");
+@Override
+public void run() {
+    try {
+        while (true) {
+            Runnable task = handoff.take();
+            long startTime = System.nanoTime();
+
+            // no more idle
+            timeIdle.addAndGet(startTime - idleStartTime.get());
+
+            // poison pill DIE
+            if (task == POISON_PILL) break;
+
+            busy.set(true);
+            try {
+                task.run();
+            } finally {
+                busy.set(false);
+                long finishTime = System.nanoTime();
+                // no more busy
+                timeUsed.addAndGet(finishTime - startTime);
+                idleStartTime.set(finishTime);
+            }
         }
-        this.handoff.peek().run();
+    } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
     }
+}
+
 
     @Override
     public int compareTo(TiredThread o) {
         // TODO
+        if (o == null) {
+            throw new IllegalArgumentException("thread cannot be null " + o.id);
+        }
+        // necessary??????
+        if (!o.alive.get() || !this.alive.get()) {
+            throw new IllegalArgumentException("threads cannot be dead " + id);
+        }
+        if(this.getFatigue() > o.getFatigue()) {
+            return 1;
+        } else if (this.getFatigue() < o.getFatigue()) {
+            return -1;
+        }
         return 0;
     }
 }
