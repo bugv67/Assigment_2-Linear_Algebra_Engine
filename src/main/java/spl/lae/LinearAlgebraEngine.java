@@ -6,6 +6,7 @@ import scheduling.*;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Vector;
 
 import org.w3c.dom.Node;
 
@@ -27,7 +28,14 @@ public class LinearAlgebraEngine {
             loadAndCompute(resolveable);
             resolveable=computationRoot.findResolvable();
         }
-        return null;
+        try {
+            executor.shutdown();
+        } catch (InterruptedException e) {
+            // TODO: handle exception
+            throw new IllegalAccessError("");
+        }
+        
+        return resolveable;
     }
 
     public void loadAndCompute(ComputationNode node) {
@@ -85,7 +93,15 @@ public class LinearAlgebraEngine {
 
     public List<Runnable> createAddTasks() {
         // TODO: return tasks that perform row-wise addition
-        return null;
+        LinkedList<Runnable> tasks = new LinkedList<>();
+        for (int i = 0; i < leftMatrix.length(); i++) {
+            final int rowIdx = i;  
+            Runnable task = () -> {
+                leftMatrix.get(rowIdx).add(rightMatrix.get(rowIdx));
+            };
+            tasks.add(task);
+        }
+        return tasks;
     }
 
     public List<Runnable> createMultiplyTasks() {
@@ -99,9 +115,19 @@ public class LinearAlgebraEngine {
     }
 
     public List<Runnable> createTransposeTasks() {
-        // TODO: return tasks that transpose rows
-        return null;
-    }
+        LinkedList<Runnable> tasks = new LinkedList<>();
+
+        for (int i = 0; i < leftMatrix.length(); i++) {
+            final int rowIdx = i;  
+            Runnable task = () -> {
+                leftMatrix.get(rowIdx).transpose();
+            };
+            tasks.add(task);
+        }
+
+    return tasks;
+}
+
 
     public String getWorkerReport() {
         // TODO: return summary of worker activity
