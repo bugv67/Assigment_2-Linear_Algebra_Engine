@@ -78,36 +78,38 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {
     public void shutdown() {
         // TODO
         handoff.offer(POISON_PILL);
+         this.alive.set(false);
     }
 
-    @Override
-    public void run() {
-        // TODO
+@Override
+public void run() {
+    try {
         while (true) {
-            long currTime;
-             
+            Runnable task = handoff.take();
+            long startTime = System.nanoTime();
+
+            // no more idle
+            timeIdle.addAndGet(startTime - idleStartTime.get());
+
+            // poison pill DIE
+            if (task == POISON_PILL) break;
+
+            busy.set(true);
             try {
-                Runnable task = this.handoff.take();
-                currTime = System.nanoTime();
-                if(task == POISON_PILL) { 
-                     this.timeIdle.addAndGet(currTime - idleStartTime.get());
-                    this.alive.set(false);
-                    return;
-                }
-            this.timeIdle.addAndGet(currTime - idleStartTime.get());
-            this.busy.set(true);
-            task.run();
-            } catch (Exception e) { 
-           // TODOOOOOO  
+                task.run();
             } finally {
-                this.busy.set(false);
+                busy.set(false);
                 long finishTime = System.nanoTime();
-                this.timeUsed.addAndGet(finishTime - currTime);
-                this.idleStartTime.set(finishTime);
+                // no more busy
+                timeUsed.addAndGet(finishTime - startTime);
+                idleStartTime.set(finishTime);
             }
         }
-       
+    } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
     }
+}
+
 
     @Override
     public int compareTo(TiredThread o) {
