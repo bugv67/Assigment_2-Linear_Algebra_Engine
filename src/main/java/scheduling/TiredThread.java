@@ -77,22 +77,23 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {
      */
     public void shutdown() {
         // TODO
-        long currTime = System.nanoTime();
-        this.timeIdle.addAndGet(currTime - idleStartTime.get());
-        this.alive.set(false);
-        this.POISON_PILL.run();
+        handoff.offer(POISON_PILL);
     }
 
     @Override
     public void run() {
         // TODO
         while (true) {
-            long currTime = System.nanoTime();
+            long currTime;
+             
             try {
                 Runnable task = this.handoff.take();
-                if(task.equals(POISON_PILL)) {
-                return;
-            }
+                currTime = System.nanoTime();
+                if(task == POISON_PILL) { 
+                     this.timeIdle.addAndGet(currTime - idleStartTime.get());
+                    this.alive.set(false);
+                    return;
+                }
             this.timeIdle.addAndGet(currTime - idleStartTime.get());
             this.busy.set(true);
             task.run();
