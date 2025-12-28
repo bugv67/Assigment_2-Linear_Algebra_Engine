@@ -82,9 +82,11 @@ public class TiredExecutor {
 
     public synchronized String getWorkerReport() {
         StringBuilder report = new StringBuilder();
+        double faTigueAvg = 0.0;
         report.append("=== Worker Report ===\n");
 
         for (int i = 0; i < workers.length; i++) {
+            faTigueAvg = faTigueAvg + workers[i].getFatigue();
             report.append("Worker ")
                 .append(workers[i].getWorkerId())
                 .append(":\n");
@@ -102,7 +104,14 @@ public class TiredExecutor {
                 .append("\n");
 
             report.append("\n");
-    }
+        }
+        faTigueAvg = faTigueAvg / workers.length;
+        double fairness = 0.0;
+        for (int i = 0; i < workers.length; i++) {
+            double deviation = workers[i].getFatigue() - faTigueAvg;
+            fairness = fairness + Math.pow(deviation,2);
+        }
+       report.append(String.format("Fairness: ", fairness));
 
         return report.toString();
 }
