@@ -41,7 +41,12 @@ public class LinearAlgebraEngine {
                 System.out.println("resovable= " + resolveable);
             }
             System.out.println("resovable= " + resolveable); // SpecialPrint
-            loadAndCompute(resolveable);
+            try {
+                loadAndCompute(resolveable);
+            } catch (Exception e) {
+                throw e;
+            }
+
             resolveable = computationRoot.findResolvable();
         }
         try {
@@ -74,16 +79,22 @@ public class LinearAlgebraEngine {
                 throw new IllegalStateException("cannot copmute node whose child is not a matrix");
             }
             System.out.println("size==1"); // SpecialPrint
-            this.leftMatrix.loadRowMajor(child.getMatrix());
-            if (currOperator == ComputationNodeType.TRANSPOSE) {
-                tasks = createTransposeTasks();
-            } else if (currOperator == ComputationNodeType.NEGATE) { //
-                System.out.println("size= " + size); // SpecialPrint
-                tasks = createNegateTasks();
-            } else {
-                throw new IllegalStateException(
-                        "cannot compute oparation " + currOperator + " with more than 1 operand");
+            try {
+                validMatrix(child.getMatrix());
+                this.leftMatrix.loadRowMajor(child.getMatrix());
+                if (currOperator == ComputationNodeType.TRANSPOSE) {
+                    tasks = createTransposeTasks();
+                } else if (currOperator == ComputationNodeType.NEGATE) { //
+                    System.out.println("size= " + size); // SpecialPrint
+                    tasks = createNegateTasks();
+                } else {
+                    throw new IllegalStateException(
+                            "cannot compute oparation " + currOperator + " with more than 1 operand");
+                }
+            } catch (Exception e) {
+                throw e;
             }
+
         }
         // for (int i = 0; i < size - 1; i++) {
         if (size > 1) {
@@ -96,12 +107,15 @@ public class LinearAlgebraEngine {
                 throw new IllegalStateException("cannot copmute node whose child is not a matrix");
             }
 
+            validMatrix(firstChild.getMatrix());
+            validMatrix(secondChild.getMatrix());
             this.leftMatrix.loadRowMajor(firstChild.getMatrix());
-            this.rightMatrix.loadRowMajor(secondChild.getMatrix());
 
             if (currOperator == ComputationNodeType.ADD) {
+                this.rightMatrix.loadRowMajor(secondChild.getMatrix());
                 tasks = createAddTasks();
             } else { // currOperator==ComputationNodeType.MULTIPLY
+                this.rightMatrix.loadColumnMajor(secondChild.getMatrix());
                 tasks = createMultiplyTasks();
             }
 
@@ -111,8 +125,6 @@ public class LinearAlgebraEngine {
         System.out.println("going to compute"); // SpecialPrint
         node.resolve(this.leftMatrix.readRowMajor());
         // }
-        // node = new ComputationNode(this.leftMatrix.readRowMajor());
-
     }
 
     public List<Runnable> createAddTasks() {
@@ -130,6 +142,7 @@ public class LinearAlgebraEngine {
 
     public List<Runnable> createMultiplyTasks() {
         // TODO: return tasks that perform row × matrix multiplication
+
         LinkedList<Runnable> tasks = new LinkedList<>();
         for (int i = 0; i < this.leftMatrix.length(); i++) {
             final int rowIdx = i;
@@ -173,5 +186,23 @@ public class LinearAlgebraEngine {
     public String getWorkerReport() {
         // TODO: return summary of worker activity
         return executor.getWorkerReport();
+    }
+
+    private void validMatrix(double[][] matrix) throws IllegalArgumentException {
+        // function to validate the matrix and the vectors before doing anything
+        if (matrix == null || matrix.length == 0) {
+            throw new IllegalArgumentException("matrix is null or empty");
+        }
+        int rowLength = matrix[0].length;
+        for (int i = 1; i < matrix.length; i++) {
+            double[] row = matrix[i];
+            if (row == null || row.length == 0) {
+                throw new IllegalArgumentException("matrix contains null or empty row");
+            }
+            if (row.length != rowLength) {
+                throw new IllegalArgumentException("the matrix have different row lengths");
+            }
+        }
+
     }
 }

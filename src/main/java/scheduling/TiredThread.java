@@ -62,7 +62,7 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {
         if (!alive.get()) {
             throw new IllegalStateException("Cannot assign a task to a dead thread: " + id);
         }
-        if (isBusy()) {
+        if (isBusy()) { // necessary??
             throw new IllegalStateException("This thread is busy: " + id);
         }
         boolean success = this.handoff.offer(task);

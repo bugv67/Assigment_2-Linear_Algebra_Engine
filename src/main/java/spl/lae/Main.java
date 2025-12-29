@@ -8,8 +8,7 @@ import parser.*;
 
 public class Main {
   public static void main(String[] args) throws IOException {
-    // TODO: main
-    System.out.println("CWD = " + Paths.get("").toAbsolutePath());
+    // TODO: maiN
     // System.out.println(" Starting main.. "); // SpecialPrint
     String arg1 = args[0];
     System.out.println(" args 1:  " + arg1); // SpecialPrint
@@ -30,6 +29,9 @@ public class Main {
     } catch (Exception e) {
       OutputWriter.write(e.getMessage(), args[2]);
       // throw new IOException("Something went wrong: " + e.getMessage());
+    } finally {
+      System.out.println(" Finished main.. "); // SpecialPrint
+      // lae.executor.shutdown();
     }
 
   }
