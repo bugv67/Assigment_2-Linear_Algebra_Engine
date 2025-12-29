@@ -25,6 +25,7 @@ public class TiredExecutor {
     }
 
     public void submit(Runnable task) {
+        System.out.println("in sumbit"); // SpecialPrint
         try {
             TiredThread worker = idleMinHeap.take(); //////// waits until worker free ??
             synchronized (completionLock) {
@@ -34,8 +35,10 @@ public class TiredExecutor {
             Runnable taskWrapper = () -> { // wraappint in order to follow the thread so that well be able to re insert
                                            // her
                 try {
+                    System.out.println("running"); // SpecialPrint
                     task.run(); // run the og task
                 } finally {
+                    System.out.println("worker back to heap"); // SpecialPrint
                     idleMinHeap.add(worker); // return the worker to the heap becausr he is freeeeeee
                     synchronized (completionLock) { // if thread fails he relese this lock
                         if (inFlight.decrementAndGet() == 0) {
@@ -54,6 +57,7 @@ public class TiredExecutor {
     }
 
     public void submitAll(Iterable<Runnable> tasks) {
+        System.out.println("in submmitAll"); // SpecialPrint
         for (Runnable task : tasks) {
             submit(task);
         }
