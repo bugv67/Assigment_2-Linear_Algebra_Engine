@@ -23,6 +23,8 @@ public class Main {
       LinearAlgebraEngine lae = new LinearAlgebraEngine(Integer.parseInt(args[0]));
       ComputationNode result = lae.run(root);
       OutputWriter.write(result.getMatrix(), args[2]);
+      System.out.println(lae.getWorkerReport());
+
     } catch (ParseException e) {
       OutputWriter.write(e.getMessage(), args[2]);
       // throw new IOException(e.getMessage());

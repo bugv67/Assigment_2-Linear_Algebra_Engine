@@ -132,7 +132,7 @@ public class TiredExecutor {
             double deviation = workers[i].getFatigue() - faTigueAvg;
             fairness = fairness + Math.pow(deviation, 2);
         }
-        report.append(String.format("Fairness: ", fairness));
+        report.append("Fairness: ").append(fairness).append("\n");
 
         return report.toString();
     }
