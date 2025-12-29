@@ -18,14 +18,35 @@ public class LinearAlgebraEngine {
 
     public LinearAlgebraEngine(int numThreads) {
         // TODO: create executor with given thread count
+        System.out.println("Build excuter!"); // SpecialPrint
+        this.executor = new TiredExecutor(numThreads);
+
     }
 
     public ComputationNode run(ComputationNode computationRoot) {
         // TODO: resolve computation tree step by step until final matrix is produced
+        System.out.println("In lae run"); // SpecialPrint
         ComputationNode resolveable = computationRoot.findResolvable();
-        while (resolveable != computationRoot) {
+        System.out.println("Found resolvable"); // SpecialPrint
+        while (resolveable != null) {
+            System.out.println("in while resolvable"); // SpecialPrint
+            System.out.println("in while in the run"); // SpecialPrint
 
-            loadAndCompute(resolveable);
+            List<ComputationNode> children = resolveable.getChildren();
+            if (children.size() > 2) {
+                System.out.println("iside if>2"); // SpecialPrint
+                resolveable.associativeNesting();
+                System.out.println("resovable= " + resolveable); // SpecialPrint
+                resolveable = resolveable.findResolvable();
+                System.out.println("resovable= " + resolveable);
+            }
+            System.out.println("resovable= " + resolveable); // SpecialPrint
+            try {
+                loadAndCompute(resolveable);
+            } catch (Exception e) {
+                throw e;
+            }
+
             resolveable = computationRoot.findResolvable();
         }
         try {
@@ -35,61 +56,75 @@ public class LinearAlgebraEngine {
             throw new IllegalAccessError("");
         }
 
-        return resolveable;
+        return computationRoot;
     }
 
     public void loadAndCompute(ComputationNode node) {
         // TODO: load operand matrices
         // TODO: create compute tasks & submit tasks to executor
+        System.out.println("in load and compute"); // SpecialPrint
 
         ComputationNodeType currOperator = node.getNodeType(); // not matrix bc resolvable
         // load the childern matrixes
         List<ComputationNode> children = node.getChildren();
         int size = node.getChildren().size();
-        List<Runnable> tasks; // =new LinkedList<>(); no need
+        List<Runnable> tasks = new LinkedList<>(); // no need
         if (size < 1) {
             throw new IllegalStateException("cannot comput this node");
         }
+        System.out.println("size= " + size); // SpecialPrint
         if (size == 1) {
             ComputationNode child = children.getFirst();
             if (child.getNodeType() != ComputationNodeType.MATRIX) {
                 throw new IllegalStateException("cannot copmute node whose child is not a matrix");
             }
-
-            this.leftMatrix.loadRowMajor(child.getMatrix());
-            if (currOperator == ComputationNodeType.TRANSPOSE) {
-                tasks = createTransposeTasks();
-            } else if (currOperator == ComputationNodeType.NEGATE) { //
-                tasks = createNegateTasks();
-            } else {
-                throw new IllegalStateException(
-                        "cannot compute oparation " + currOperator + " with more than 1 operand");
+            System.out.println("size==1"); // SpecialPrint
+            try {
+                validMatrix(child.getMatrix());
+                this.leftMatrix.loadRowMajor(child.getMatrix());
+                if (currOperator == ComputationNodeType.TRANSPOSE) {
+                    tasks = createTransposeTasks();
+                } else if (currOperator == ComputationNodeType.NEGATE) { //
+                    System.out.println("size= " + size); // SpecialPrint
+                    tasks = createNegateTasks();
+                } else {
+                    throw new IllegalStateException(
+                            "cannot compute oparation " + currOperator + " with more than 1 operand");
+                }
+            } catch (Exception e) {
+                throw e;
             }
+
         }
-        for (int i = 0; i < size - 1; i++) {
-            ComputationNode firstChild = children.removeFirst();
-            ComputationNode secondChild = children.removeFirst();
+        // for (int i = 0; i < size - 1; i++) {
+        if (size > 1) {
+            ComputationNode firstChild = children.getFirst();
+            ComputationNode secondChild = children.get(1);
+            // node.associativeNesting(); ---- in the run
 
             if (firstChild.getNodeType() != ComputationNodeType.MATRIX
                     || secondChild.getNodeType() != ComputationNodeType.MATRIX) {
                 throw new IllegalStateException("cannot copmute node whose child is not a matrix");
             }
 
+            validMatrix(firstChild.getMatrix());
+            validMatrix(secondChild.getMatrix());
             this.leftMatrix.loadRowMajor(firstChild.getMatrix());
-            this.rightMatrix.loadRowMajor(secondChild.getMatrix());
 
             if (currOperator == ComputationNodeType.ADD) {
+                this.rightMatrix.loadRowMajor(secondChild.getMatrix());
                 tasks = createAddTasks();
             } else { // currOperator==ComputationNodeType.MULTIPLY
+                this.rightMatrix.loadColumnMajor(secondChild.getMatrix());
                 tasks = createMultiplyTasks();
             }
 
-            this.executor.submitAll(tasks);
-            ComputationNode result = new ComputationNode(this.leftMatrix.readRowMajor());
-            children.addFirst(result);
         }
-        node = new ComputationNode(this.leftMatrix.readRowMajor());
-
+        System.out.println("sunbitting tasks"); // SpecialPrint
+        this.executor.submitAll(tasks);
+        System.out.println("going to compute"); // SpecialPrint
+        node.resolve(this.leftMatrix.readRowMajor());
+        // }
     }
 
     public List<Runnable> createAddTasks() {
@@ -107,6 +142,7 @@ public class LinearAlgebraEngine {
 
     public List<Runnable> createMultiplyTasks() {
         // TODO: return tasks that perform row × matrix multiplication
+
         LinkedList<Runnable> tasks = new LinkedList<>();
         for (int i = 0; i < this.leftMatrix.length(); i++) {
             final int rowIdx = i;
@@ -121,6 +157,7 @@ public class LinearAlgebraEngine {
 
     public List<Runnable> createNegateTasks() {
         // TODO: return tasks that negate rows
+        System.out.println("create negate tasks"); // SpecialPrint
         LinkedList<Runnable> tasks = new LinkedList<>();
         for (int i = 0; i < this.leftMatrix.length(); i++) {
             final int rowIdx = i;
@@ -149,5 +186,23 @@ public class LinearAlgebraEngine {
     public String getWorkerReport() {
         // TODO: return summary of worker activity
         return executor.getWorkerReport();
+    }
+
+    private void validMatrix(double[][] matrix) throws IllegalArgumentException {
+        // function to validate the matrix and the vectors before doing anything
+        if (matrix == null || matrix.length == 0) {
+            throw new IllegalArgumentException("matrix is null or empty");
+        }
+        int rowLength = matrix[0].length;
+        for (int i = 1; i < matrix.length; i++) {
+            double[] row = matrix[i];
+            if (row == null || row.length == 0) {
+                throw new IllegalArgumentException("matrix contains null or empty row");
+            }
+            if (row.length != rowLength) {
+                throw new IllegalArgumentException("the matrix have different row lengths");
+            }
+        }
+
     }
 }

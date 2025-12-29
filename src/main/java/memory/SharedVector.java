@@ -109,8 +109,6 @@ public class SharedVector {
         } finally {
             writeUnlock();
             other.readUnlock();
-            // second.readUnlock();
-            // first.writeUnlock();
         }
     }
 
@@ -170,7 +168,6 @@ public class SharedVector {
 
         double[] product = new double[temp[0].length];
         this.readLock();
-
         try {
             if (this.length() != temp.length)
                 throw new IllegalArgumentException("Dimensions missed matched ");
