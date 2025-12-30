@@ -1,1 +1,4 @@
+scheduling/TestTiredExecutor.class
+scheduling/TestTiredThread.class
 memory/TestSharedVector.class
+spl/lae/TestLinearAlgebraEngine.class

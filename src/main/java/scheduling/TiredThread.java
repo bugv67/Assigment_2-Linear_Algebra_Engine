@@ -52,6 +52,10 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {
         return timeIdle.get();
     }
 
+    private void setTimeUsed(long time) {
+        timeUsed.set(time);
+    }
+
     /**
      * Assign a task to this worker.
      * This method is non-blocking: if the worker is not ready to accept a task,
@@ -62,9 +66,9 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {
         if (!alive.get()) {
             throw new IllegalStateException("Cannot assign a task to a dead thread: " + id);
         }
-        if (isBusy()) { // necessary??
-            throw new IllegalStateException("This thread is busy: " + id);
-        }
+        // if (isBusy()) { // necessary??
+        // throw new IllegalStateException("This thread is busy: " + id);
+        // }
         boolean success = this.handoff.offer(task);
         if (!success) {
             throw new IllegalStateException("This thread is not ready to accept a task: " + id);
@@ -93,8 +97,9 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {
                 timeIdle.addAndGet(startTime - idleStartTime.get());
 
                 // poison pill DIE
-                if (task == POISON_PILL)
-                    break;
+                if (task == POISON_PILL) {
+                    return;
+                }
 
                 busy.set(true);
                 try {
@@ -109,7 +114,7 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {
             }
         } catch (InterruptedException e) {
             // return;
-            Thread.currentThread().interrupt(); // ignore and exit by return;
+            // Thread.currentThread().interrupt(); // ignore and exit by return;
 
             // if a thread got stuck here he didnt have any take- on a new task OR poisen
             // pill will wake up and eend
@@ -123,9 +128,9 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {
             throw new IllegalArgumentException("thread cannot be null " + o.id);
         }
         // necessary??????
-        if (!o.alive.get() || !this.alive.get()) {
-            throw new IllegalArgumentException("threads cannot be dead " + id);
-        }
+        // if (!o.alive.get() || !this.alive.get()) {
+        // throw new IllegalArgumentException("threads cannot be dead " + id);
+        // }
         if (this.getFatigue() > o.getFatigue()) {
             return 1;
         } else if (this.getFatigue() < o.getFatigue()) {

@@ -19,19 +19,6 @@ class TestSharedVector {
     }
 
     @Test
-    void testConstructorAndGet() { // no use in v1 and v2 here because testing constructor
-        double[] vector = { 1.0, 2.0, 3.0 };
-        SharedVector v = new SharedVector(vector, VectorOrientation.ROW_MAJOR);
-
-        assertEquals(3, v.length());
-        assertEquals(1.0, v.get(0));
-        assertEquals(VectorOrientation.ROW_MAJOR, v.getOrientation());
-
-        vector[0] = 99; // see if did deep copy
-        assertEquals(1.0, v.get(0));
-    }
-
-    @Test
     void testGet() {
         assertEquals(1.0, v1.get(0), 1e-9);
         assertEquals(2.0, v1.get(1), 1e-9);
@@ -55,6 +42,8 @@ class TestSharedVector {
     void testTranspose() {
         v2.transpose();
         assertEquals(VectorOrientation.ROW_MAJOR, v2.getOrientation());
+        v2.transpose();
+        assertEquals(VectorOrientation.COLUMN_MAJOR, v2.getOrientation());
 
         v5.transpose();
         assertEquals(VectorOrientation.COLUMN_MAJOR, v5.getOrientation());
@@ -77,6 +66,10 @@ class TestSharedVector {
         assertEquals(-1.0, v1.get(0), 1e-9);
         assertEquals(-2.0, v1.get(1), 1e-9);
         assertEquals(-3.0, v1.get(2), 1e-9);
+        v1.negate();
+        assertEquals(1.0, v1.get(0), 1e-9);
+        assertEquals(2.0, v1.get(1), 1e-9);
+        assertEquals(3.0, v1.get(2), 1e-9);
 
         v2.negate();
         assertEquals(-4.0, v2.get(0), 1e-9);

@@ -27,7 +27,7 @@ public class TiredExecutor {
     public void submit(Runnable task) {
         System.out.println("in sumbit"); // SpecialPrint
         try {
-            TiredThread worker = idleMinHeap.take(); //////// waits until worker free ??
+            TiredThread worker = idleMinHeap.take(); //////// waits until worker free
             synchronized (completionLock) {
                 inFlight.incrementAndGet();
             }
@@ -76,9 +76,10 @@ public class TiredExecutor {
     }
 
     public void shutdown() throws InterruptedException {
-        if (inFlight.get() > 0) {
-            throw new IllegalAccessError("Tried to shut down while there are still tasks to be completed");
-        }
+        // if (inFlight.get() > 0) {
+        // throw new IllegalAccessError("Tried to shut down while there are still tasks
+        // to be completed");
+        // }
 
         // Note: The 'inFlight' counter tracks only runnig tasks, not idle or waiting
         // Workers that are blocked on handoff.take() are not counted in 'inFlight'.
@@ -87,11 +88,11 @@ public class TiredExecutor {
         // then send a POISON_PILL to each worker to wake up any blocked threads and
         // close them safely.
 
-        // synchronized (completionLock) {
-        // while (inFlight.get() > 0) {
-        // completionLock.wait();
-        // }
-        // }
+        synchronized (completionLock) {
+            while (inFlight.get() > 0) {
+                completionLock.wait();
+            }
+        }
         for (TiredThread worker : workers) {
             worker.shutdown();
         }

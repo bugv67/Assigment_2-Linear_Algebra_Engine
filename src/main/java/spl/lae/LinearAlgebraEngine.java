@@ -3,6 +3,7 @@ package spl.lae;
 import parser.*;
 import memory.*;
 import scheduling.*;
+import scheduling.TiredExecutor;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -24,36 +25,39 @@ public class LinearAlgebraEngine {
     }
 
     public ComputationNode run(ComputationNode computationRoot) {
-        // TODO: resolve computation tree step by step until final matrix is produced
-        System.out.println("In lae run"); // SpecialPrint
-        ComputationNode resolveable = computationRoot.findResolvable();
-        System.out.println("Found resolvable"); // SpecialPrint
-        while (resolveable != null) {
-            System.out.println("in while resolvable"); // SpecialPrint
-            System.out.println("in while in the run"); // SpecialPrint
-
-            List<ComputationNode> children = resolveable.getChildren();
-            if (children.size() > 2) {
-                System.out.println("iside if>2"); // SpecialPrint
-                resolveable.associativeNesting();
-                System.out.println("resovable= " + resolveable); // SpecialPrint
-                resolveable = resolveable.findResolvable();
-                System.out.println("resovable= " + resolveable);
-            }
-            System.out.println("resovable= " + resolveable); // SpecialPrint
-            try {
-                loadAndCompute(resolveable);
-            } catch (Exception e) {
-                throw e;
-            }
-
-            resolveable = computationRoot.findResolvable();
-        }
         try {
-            executor.shutdown();
-        } catch (InterruptedException e) {
-            // TODO: handle exception
-            throw new IllegalAccessError("");
+            // TODO: resolve computation tree step by step until final matrix is produced
+            System.out.println("In lae run"); // SpecialPrint
+            ComputationNode resolveable = computationRoot.findResolvable();
+            System.out.println("Found resolvable"); // SpecialPrint
+            while (resolveable != null) {
+                System.out.println("in while resolvable"); // SpecialPrint
+                System.out.println("in while in the run"); // SpecialPrint
+
+                List<ComputationNode> children = resolveable.getChildren();
+                if (children.size() > 2) {
+                    System.out.println("iside if>2"); // SpecialPrint
+                    resolveable.associativeNesting();
+                    System.out.println("resovable= " + resolveable); // SpecialPrint
+                    resolveable = resolveable.findResolvable();
+                    System.out.println("resovable= " + resolveable);
+                }
+                System.out.println("resovable= " + resolveable); // SpecialPrint
+                try {
+                    loadAndCompute(resolveable);
+                } catch (Exception e) {
+                    throw e;
+                }
+
+                resolveable = computationRoot.findResolvable();
+            }
+        } finally {
+            try {
+                executor.shutdown();
+            } catch (InterruptedException e) {
+                // TODO: handle exception
+                System.out.println("executor shutdown interrupted");
+            }
         }
 
         return computationRoot;
