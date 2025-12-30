@@ -4,6 +4,9 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.concurrent.atomic.AtomicLong;
 
 class TestTiredThread {
 
@@ -115,32 +118,38 @@ class TestTiredThread {
 
     @Test
     void compareTo() throws InterruptedException {
+        System.out.println("Compare to test"); // SpecialPrint
+
+        Method method = null;
+        try {
+            method = TiredThread.class.getDeclaredMethod("setTimeUsed", long.class);
+        } catch (NoSuchMethodException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (SecurityException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        method.setAccessible(true);
+        System.out.println("public the method"); // SpecialPrint
+        long timeUsedT1 = 10000;
+
+        try {
+            method.invoke(t1, timeUsedT1);
+        } catch (IllegalAccessException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        System.out.println("chage time to : " + timeUsedT1); // SpecialPrint
+        assertEquals(10000, t1.getTimeUsed());
+        assert (t2.compareTo(t1) < 0);
+
         System.out.println("test comareTo"); // SpecialPrint
-        assertTrue(t2.compareTo(t1) == 0);
-        t1.start();
-        // System.out.println("start in compaer to"); // SpecialPrint
-        // t1.newTask(() -> {
-        // try {
-        // int k = 0;
-        // for (int i = 0; i < 3; i++) {
-        // k++;
-        // }
+        assertTrue(t2.compareTo(t1) < 0);
+        assertTrue(t1.compareTo(t2) > 0);
 
-        // } catch (Exception e) {
-        // }
-        // });
-        // System.out.println("shutdown in compaer to"); // SpecialPrint
-        // t1.shutdown();
-        // try {
-        // t1.join();
-        // } catch (InterruptedException e) {
-        //
-        // }
-        // System.out.println("T1 Fatigue: " + t1.getFatigue());
-        // System.out.println("T2 Fatigue: " + t2.getFatigue());
-        // System.out.println("Comparison Result: " + t2.compareTo(t1));
-
-        // assertTrue(t2.compareTo(t1) > 0);
     }
-    // t1.setTimeUsed(1000);
 }
