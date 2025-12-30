@@ -66,9 +66,9 @@ public class TiredExecutor {
             while (inFlight.get() > 0) {
                 try {
                     completionLock.wait();
-                } catch (InterruptedException e) { // ignore? will wake up in the sumbit of other thread
+                } catch (InterruptedException e) { // ignore will wake up in the sumbit of other thread
                     // return;
-                    Thread.currentThread().interrupt();
+                    // Thread.currentThread().interrupt();
                     break;
                 }
             }

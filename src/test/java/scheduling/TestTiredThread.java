@@ -104,14 +104,21 @@ class TestTiredThread {
                 }
             });
         });
+
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+        }
         System.out.println("task submitted to t1"); // SpecialPrint
         System.out.println("shutting down t1"); // SpecialPrint
         t1.shutdown();
         try {
-            t1.join();
+            t1.join(2000); /////////////
         } catch (InterruptedException e) {
-
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
+
         System.out.println("t1 joined"); // SpecialPrint
         assertFalse(t1.isAlive());
     }

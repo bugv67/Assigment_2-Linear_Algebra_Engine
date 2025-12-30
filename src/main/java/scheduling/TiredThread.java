@@ -83,13 +83,13 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {
         // TODO
         handoff.offer(POISON_PILL);
         // handoff.put(POISON_PILL);
-        this.alive.set(false);
+
     }
 
     @Override
     public void run() {
         try {
-            while (true) {
+            while (this.alive.get()) {
                 Runnable task = handoff.take();
                 long startTime = System.nanoTime();
 
@@ -98,6 +98,7 @@ public class TiredThread extends Thread implements Comparable<TiredThread> {
 
                 // poison pill DIE
                 if (task == POISON_PILL) {
+                    this.alive.set(false);
                     return;
                 }
 
