@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="memory.TestSharedVector" time="0.534" tests="8" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="scheduling.TestTiredThread" time="0.475" tests="7" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="21"/>
     <property name="sun.jnu.encoding" value="UTF-8"/>
@@ -54,12 +54,40 @@
     <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
     <property name="java.class.version" value="65.0"/>
   </properties>
-  <testcase name="testAdd" classname="memory.TestSharedVector" time="0.136"/>
-  <testcase name="testDot" classname="memory.TestSharedVector" time="0.003"/>
-  <testcase name="testGet" classname="memory.TestSharedVector" time="0.004"/>
-  <testcase name="testMul" classname="memory.TestSharedVector" time="0.022"/>
-  <testcase name="testGetOrientation" classname="memory.TestSharedVector" time="0.003"/>
-  <testcase name="testGetLength" classname="memory.TestSharedVector" time="0.003"/>
-  <testcase name="testNegate" classname="memory.TestSharedVector" time="0.003"/>
-  <testcase name="testTranspose" classname="memory.TestSharedVector" time="0.003"/>
+  <testcase name="compareTo" classname="scheduling.TestTiredThread" time="0.083">
+    <system-out><![CDATA[Compare to test
+public the method
+chage time to : 10000
+test comareTo
+]]></system-out>
+  </testcase>
+  <testcase name="isBusy" classname="scheduling.TestTiredThread" time="0.032">
+    <system-out><![CDATA[test isBusy
+]]></system-out>
+  </testcase>
+  <testcase name="shutdown" classname="scheduling.TestTiredThread" time="0.11">
+    <system-out><![CDATA[test shutdown
+started t1
+task submitted to t1
+shutting down t1
+t1 joined
+]]></system-out>
+  </testcase>
+  <testcase name="getFatigue" classname="scheduling.TestTiredThread" time="0.011">
+    <system-out><![CDATA[test getFatigue
+]]></system-out>
+  </testcase>
+  <testcase name="getTimeUsed" classname="scheduling.TestTiredThread" time="0.151">
+    <system-out><![CDATA[test getTimeUsed
+Time used by t1: 47767
+]]></system-out>
+  </testcase>
+  <testcase name="newTask" classname="scheduling.TestTiredThread" time="0.04">
+    <system-out><![CDATA[test newTask
+]]></system-out>
+  </testcase>
+  <testcase name="getWorkerId" classname="scheduling.TestTiredThread" time="0.006">
+    <system-out><![CDATA[test getWorkerId
+]]></system-out>
+  </testcase>
 </testsuite>

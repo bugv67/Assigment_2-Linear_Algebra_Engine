@@ -6,92 +6,101 @@ import org.junit.jupiter.api.Test;
 
 class TestSharedVector {
 
+    private SharedVector v1;
+    private SharedVector v2;
+    private SharedVector v5;
+
     @BeforeEach
     void setUp() {
+        v1 = new SharedVector(new double[] { 1.0, 2.0, 3.0 }, VectorOrientation.ROW_MAJOR);
+        v2 = new SharedVector(new double[] { 4.0, 5.0, 6.0 }, VectorOrientation.COLUMN_MAJOR);
 
+        v5 = new SharedVector(new double[] { 6.0, 7.0, 8.0, 9.0, 11.0 }, VectorOrientation.ROW_MAJOR);
     }
 
     @Test
     void testGet() {
-        SharedVector vector = new SharedVector(new double[] { 10.5, 20.5, 30.5 }, VectorOrientation.ROW_MAJOR);
-        assertEquals(10.5, vector.get(0), 1e-9);
-        assertEquals(20.5, vector.get(1), 1e-9);
-        assertEquals(30.5, vector.get(2), 1e-9);
+        assertEquals(1.0, v1.get(0), 1e-9);
+        assertEquals(2.0, v1.get(1), 1e-9);
+        assertEquals(3.0, v1.get(2), 1e-9);
     }
 
     @Test
     void testGetLength() {
-        SharedVector vector = new SharedVector(new double[] { 1, 2, 3, 4, 5 }, VectorOrientation.ROW_MAJOR);
-        assertEquals(5, vector.length());
+        assertEquals(3, v1.length());
+        assertEquals(5, v5.length());
     }
 
     @Test
     void testGetOrientation() {
-        SharedVector vector = new SharedVector(new double[] { 1, 2, 3 }, VectorOrientation.COLUMN_MAJOR);
-        assertEquals(VectorOrientation.COLUMN_MAJOR, vector.getOrientation());
+
+        assertEquals(VectorOrientation.ROW_MAJOR, v1.getOrientation());
+        assertEquals(VectorOrientation.COLUMN_MAJOR, v2.getOrientation());
     }
 
     @Test
     void testTranspose() {
-        SharedVector vector = new SharedVector(new double[] { 1, 2, 3 }, VectorOrientation.ROW_MAJOR);
-        vector.transpose();
-        assertEquals(VectorOrientation.COLUMN_MAJOR, vector.getOrientation());
+        v2.transpose();
+        assertEquals(VectorOrientation.ROW_MAJOR, v2.getOrientation());
+        v2.transpose();
+        assertEquals(VectorOrientation.COLUMN_MAJOR, v2.getOrientation());
 
-        vector.transpose();
-        assertEquals(VectorOrientation.ROW_MAJOR, vector.getOrientation());
+        v5.transpose();
+        assertEquals(VectorOrientation.COLUMN_MAJOR, v5.getOrientation());
     }
 
     @Test
     void testAdd() {
-        SharedVector vector1 = new SharedVector(new double[] { 1, 2, 3 }, VectorOrientation.ROW_MAJOR);
-        SharedVector vector2 = new SharedVector(new double[] { 4, 5, 6 }, VectorOrientation.ROW_MAJOR);
+        SharedVector v3 = new SharedVector(new double[] { 1, 1, 1 }, VectorOrientation.ROW_MAJOR);
+        v1.add(v3);
 
-        vector1.add(vector2);
-
-        assertEquals(5.0, vector1.get(0), 1e-9);
-        assertEquals(7.0, vector1.get(1), 1e-9);
-        assertEquals(9.0, vector1.get(2), 1e-9);
+        assertEquals(2.0, v1.get(0), 1e-9);
+        assertEquals(3.0, v1.get(1), 1e-9);
+        assertEquals(4.0, v1.get(2), 1e-9);
 
     }
 
     @Test
     void testNegate() {
-        SharedVector vector = new SharedVector(new double[] { 1, -2, 3 }, VectorOrientation.ROW_MAJOR);
-        vector.negate();
-        assertEquals(-1.0, vector.get(0), 1e-9);
-        assertEquals(2.0, vector.get(1), 1e-9);
-        assertEquals(-3.0, vector.get(2), 1e-9);
+        v1.negate();
+        assertEquals(-1.0, v1.get(0), 1e-9);
+        assertEquals(-2.0, v1.get(1), 1e-9);
+        assertEquals(-3.0, v1.get(2), 1e-9);
+        v1.negate();
+        assertEquals(1.0, v1.get(0), 1e-9);
+        assertEquals(2.0, v1.get(1), 1e-9);
+        assertEquals(3.0, v1.get(2), 1e-9);
+
+        v2.negate();
+        assertEquals(-4.0, v2.get(0), 1e-9);
+        assertEquals(-5.0, v2.get(1), 1e-9);
+        assertEquals(-6.0, v2.get(2), 1e-9);
     }
 
     @Test
     void testDot() {
-        SharedVector vector1 = new SharedVector(new double[] { 1, 2, 3 }, VectorOrientation.ROW_MAJOR);
-        SharedVector vector2 = new SharedVector(new double[] { 4, 5, 6 }, VectorOrientation.COLUMN_MAJOR);
-        double result = vector1.dot(vector2);
+        double result = v1.dot(v2);
         assertEquals(32.0, result, 1e-9); // 1*4 + 2*5 + 3*6 = 32
     }
 
     @Test
     void testMul() {
-        // assertTrue(true);
-        // Row vector: [1, 2]
-        SharedVector vector = new SharedVector(new double[] { 1, 2 }, VectorOrientation.ROW_MAJOR);
-
         // Matrix:
         // [ 3 4 ]
         // [ 5 6 ]
+        // [ 7 8 ]
 
-        SharedMatrix matrix = new SharedMatrix(
-                new double[][] {
-                        { 3, 4 },
-                        { 5, 6 } });
+        SharedMatrix matrix = new SharedMatrix(new double[][] { { 3, 4 },
+                { 5, 6 },
+                { 7, 8 } });
 
-        // Expected result:
-        // [1*3 + 2*5, 1*4 + 2*6] = [13, 16]
-        double[] expected = { 13, 16 };
-        vector.vecMatMul(matrix);
+        // [1∗3 + 2∗5 + 3∗7 ]= 34
+        // [1∗4 + 2∗6 + 3∗8 ]= 40
+        double[] expected = { 34, 40 };
+        v1.vecMatMul(matrix);
 
-        double[] result = { vector.get(0), vector.get(1) };
+        assertEquals(2, v1.length());
+        double[] result = { v1.get(0), v1.get(1) };
 
         assertArrayEquals(expected, result, 1e-9);
     }
