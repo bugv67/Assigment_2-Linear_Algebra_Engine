@@ -78,14 +78,14 @@ public class LinearAlgebraEngine {
         }
         System.out.println("size= " + size); // SpecialPrint
         if (size == 1) {
-            ComputationNode child = children.getFirst();
+            ComputationNode child = children.get(0);
             if (child.getNodeType() != ComputationNodeType.MATRIX) {
                 throw new IllegalStateException("cannot copmute node whose child is not a matrix");
             }
             System.out.println("size==1"); // SpecialPrint
             try {
                 validMatrix(child.getMatrix());
-                validFunction(currOperator, child.getMatrix(), null);
+                // validFunction(currOperator, child.getMatrix(), null);
                 this.leftMatrix.loadRowMajor(child.getMatrix());
                 if (currOperator == ComputationNodeType.TRANSPOSE) {
                     tasks = createTransposeTasks();
@@ -94,18 +94,17 @@ public class LinearAlgebraEngine {
                     tasks = createNegateTasks();
                 } else {
                     throw new IllegalStateException(
-                            "cannot compute oparation " + currOperator + " with more than 1 operand");
+                            "cannot compute oparation " + currOperator + " with less than 2 operand");
                 }
             } catch (Exception e) {
                 throw e;
             }
 
         }
-        // for (int i = 0; i < size - 1; i++) {
+
         if (size > 1) {
-            ComputationNode firstChild = children.getFirst();
+            ComputationNode firstChild = children.get(0);
             ComputationNode secondChild = children.get(1);
-            // node.associativeNesting(); ---- in the run
 
             if (firstChild.getNodeType() != ComputationNodeType.MATRIX
                     || secondChild.getNodeType() != ComputationNodeType.MATRIX) {
@@ -120,9 +119,12 @@ public class LinearAlgebraEngine {
             if (currOperator == ComputationNodeType.ADD) {
                 this.rightMatrix.loadRowMajor(secondChild.getMatrix());
                 tasks = createAddTasks();
-            } else { // currOperator==ComputationNodeType.MULTIPLY
+            } else if (currOperator == ComputationNodeType.MULTIPLY) {
                 this.rightMatrix.loadColumnMajor(secondChild.getMatrix());
                 tasks = createMultiplyTasks();
+            } else {
+                throw new IllegalStateException(
+                        "cannot compute oparation " + currOperator + " with more than 1 operand");
             }
 
         }
@@ -130,7 +132,7 @@ public class LinearAlgebraEngine {
         this.executor.submitAll(tasks);
         System.out.println("going to compute"); // SpecialPrint
         node.resolve(this.leftMatrix.readRowMajor());
-        // }
+
     }
 
     public List<Runnable> createAddTasks() {

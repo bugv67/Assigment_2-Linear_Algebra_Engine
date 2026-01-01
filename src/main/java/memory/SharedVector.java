@@ -117,6 +117,7 @@ public class SharedVector {
         writeLock();
         try {
             for (int i = 0; i < length(); i++) {
+                if (get(i) != 0) 
                 vector[i] = get(i) * -1;
             }
         } finally {
