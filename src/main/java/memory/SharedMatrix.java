@@ -106,7 +106,7 @@ public class SharedMatrix {
     public SharedVector get(int index) {
         // TODO: return vector at index
 
-        if (index < 0 || index > vectors.length) {
+        if (index < 0 || index >= vectors.length) {
             throw new IndexOutOfBoundsException("Invalid index: " + index);
         }
         vectors[index].readLock();
