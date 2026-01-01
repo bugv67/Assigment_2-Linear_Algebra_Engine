@@ -1,5 +1,10 @@
 /workspaces/Assigment_2-Linear_Algebra_Engine/src/test/java/memory/TestSharedVector.java
 /workspaces/Assigment_2-Linear_Algebra_Engine/src/test/java/scheduling/TestTiredExecutor.java
+<<<<<<< HEAD
 /workspaces/Assigment_2-Linear_Algebra_Engine/src/test/java/memory/TestSharedMatrix.java
 /workspaces/Assigment_2-Linear_Algebra_Engine/src/test/java/scheduling/TestTiredThread.java
 /workspaces/Assigment_2-Linear_Algebra_Engine/src/test/java/spl/lae/LinearAlgebraEngineTest.java
+=======
+/workspaces/Assigment_2-Linear_Algebra_Engine/src/test/java/scheduling/TestTiredThread.java
+/workspaces/Assigment_2-Linear_Algebra_Engine/src/test/java/spl/lae/TestLinearAlgebraEngine.java
+>>>>>>> 948d6ed548e9cb3987ad01070f92e6346d2f3532
