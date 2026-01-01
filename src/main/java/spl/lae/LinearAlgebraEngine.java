@@ -19,7 +19,7 @@ public class LinearAlgebraEngine {
 
     public LinearAlgebraEngine(int numThreads) {
         // TODO: create executor with given thread count
-        System.out.println("Build excuter!"); // SpecialPrint
+
         this.executor = new TiredExecutor(numThreads);
 
     }
@@ -27,22 +27,13 @@ public class LinearAlgebraEngine {
     public ComputationNode run(ComputationNode computationRoot) {
         try {
             // TODO: resolve computation tree step by step until final matrix is produced
-            System.out.println("In lae run"); // SpecialPrint
             ComputationNode resolveable = computationRoot.findResolvable();
-            System.out.println("Found resolvable"); // SpecialPrint
             while (resolveable != null) {
-                System.out.println("in while resolvable"); // SpecialPrint
-                System.out.println("in while in the run"); // SpecialPrint
-
                 List<ComputationNode> children = resolveable.getChildren();
                 if (children.size() > 2) {
-                    System.out.println("iside if>2"); // SpecialPrint
                     resolveable.associativeNesting();
-                    System.out.println("resovable= " + resolveable); // SpecialPrint
                     resolveable = resolveable.findResolvable();
-                    System.out.println("resovable= " + resolveable);
                 }
-                System.out.println("resovable= " + resolveable); // SpecialPrint
                 try {
                     loadAndCompute(resolveable);
                 } catch (Exception e) {
@@ -66,7 +57,6 @@ public class LinearAlgebraEngine {
     public void loadAndCompute(ComputationNode node) {
         // TODO: load operand matrices
         // TODO: create compute tasks & submit tasks to executor
-        System.out.println("in load and compute"); // SpecialPrint
 
         ComputationNodeType currOperator = node.getNodeType(); // not matrix bc resolvable
         // load the childern matrixes
@@ -76,13 +66,12 @@ public class LinearAlgebraEngine {
         if (size < 1) {
             throw new IllegalStateException("cannot comput this node");
         }
-        System.out.println("size= " + size); // SpecialPrint
+
         if (size == 1) {
             ComputationNode child = children.get(0);
             if (child.getNodeType() != ComputationNodeType.MATRIX) {
                 throw new IllegalStateException("cannot copmute node whose child is not a matrix");
             }
-            System.out.println("size==1"); // SpecialPrint
             try {
                 validMatrix(child.getMatrix());
                 // validFunction(currOperator, child.getMatrix(), null);
@@ -90,7 +79,6 @@ public class LinearAlgebraEngine {
                 if (currOperator == ComputationNodeType.TRANSPOSE) {
                     tasks = createTransposeTasks();
                 } else if (currOperator == ComputationNodeType.NEGATE) { //
-                    System.out.println("size= " + size); // SpecialPrint
                     tasks = createNegateTasks();
                 } else {
                     throw new IllegalStateException(
@@ -128,9 +116,7 @@ public class LinearAlgebraEngine {
             }
 
         }
-        System.out.println("sunbitting tasks"); // SpecialPrint
         this.executor.submitAll(tasks);
-        System.out.println("going to compute"); // SpecialPrint
         node.resolve(this.leftMatrix.readRowMajor());
 
     }
@@ -165,7 +151,6 @@ public class LinearAlgebraEngine {
 
     public List<Runnable> createNegateTasks() {
         // TODO: return tasks that negate rows
-        System.out.println("create negate tasks"); // SpecialPrint
         LinkedList<Runnable> tasks = new LinkedList<>();
         for (int i = 0; i < this.leftMatrix.length(); i++) {
             final int rowIdx = i;
